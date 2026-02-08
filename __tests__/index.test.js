@@ -21,13 +21,13 @@ describe('Home', () => {
     expect(translationText).toBeInTheDocument()
   })
 
-  it('renders fallback when props are missing', () => {
-    render(<Home />)
+  it('renders error message when data fetching fails', () => {
+    render(<Home shubhashita={null} language="en" />)
 
-    const fallbackHeading = screen.getByRole('heading', {
-      name: /Hello Next\.js/i,
+    const errorHeading = screen.getByRole('heading', {
+      name: /Error Loading Shubhashita/i,
     })
 
-    expect(fallbackHeading).toBeInTheDocument()
+    expect(errorHeading).toBeInTheDocument()
   })
 })

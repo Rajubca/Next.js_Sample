@@ -30,4 +30,20 @@ describe('Home', () => {
 
     expect(errorHeading).toBeInTheDocument()
   })
+
+  it('renders Indian language translation correctly', () => {
+    const mockShubhashita = {
+      sanskrit: 'सत्यमेव जयते',
+      translation: 'ਸੱਚ ਦੀ ਹੀ ਜਿੱਤ ਹੁੰਦੀ ਹੈ' // Punjabi
+    }
+    const mockLanguage = 'pa'
+
+    render(<Home shubhashita={mockShubhashita} language={mockLanguage} />)
+
+    const translationText = screen.getByText(/ਸੱਚ ਦੀ ਹੀ ਜਿੱਤ ਹੁੰਦੀ ਹੈ/i)
+    const languageLabel = screen.getByText(/Translation \(pa\):/i)
+
+    expect(translationText).toBeInTheDocument()
+    expect(languageLabel).toBeInTheDocument()
+  })
 })

@@ -1,11 +1,10 @@
-import { shubhashitas } from '../lib/shubhashitas';
-
+// pages/index.js
 export default function Home({ shubhashita, language }) {
   if (!shubhashita) {
     return (
       <main>
-        <h1>Hello Next.js</h1>
-        <p>This is a sample application.</p>
+        <h1>Error Loading Shubhashita</h1>
+        <p>Could not fetch data. Please try again later.</p>
       </main>
     );
   }
@@ -27,25 +26,48 @@ export default function Home({ shubhashita, language }) {
 }
 
 export async function getServerSideProps({ req }) {
-  const acceptLanguage = req.headers['accept-language'] || 'en';
-  // Simple parsing: get the first language code (e.g., 'en-US' -> 'en')
-  const preferredLanguage = acceptLanguage.split(',')[0].split('-')[0];
+  // Use absolute URL for server-side fetching
+  const protocol = req.headers['x-forwarded-proto'] || 'http';
+  const host = req.headers.host;
+  const apiUrl = `${protocol}://${host}/api/shubhashitas`;
 
-  // Pick a random shubhashita
-  const randomIndex = Math.floor(Math.random() * shubhashitas.length);
-  const randomShubhashita = shubhashitas[randomIndex];
-
-  // Get translation for the preferred language, fallback to English
-  const translation = randomShubhashita.translations[preferredLanguage] || randomShubhashita.translations['en'];
-  const displayLanguage = randomShubhashita.translations[preferredLanguage] ? preferredLanguage : 'en';
-
-  return {
-    props: {
-      shubhashita: {
-        sanskrit: randomShubhashita.sanskrit,
-        translation: translation
-      },
-      language: displayLanguage
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+        console.error(`Failed to fetch shubhashitas: ${res.status} ${res.statusText}`);
+        return { props: { shubhashita: null, language: 'en' } };
     }
-  };
+    const shubhashitas = await res.json();
+
+    if (!shubhashitas || shubhashitas.length === 0) {
+        return { props: { shubhashita: null, language: 'en' } };
+    }
+
+    const acceptLanguage = req.headers['accept-language'] || 'en';
+    const preferredLanguage = acceptLanguage.split(',')[0].split('-')[0];
+
+    const randomIndex = Math.floor(Math.random() * shubhashitas.length);
+    const randomShubhashita = shubhashitas[randomIndex];
+
+    const translation = randomShubhashita.translations[preferredLanguage] || randomShubhashita.translations['en'];
+    const displayLanguage = randomShubhashita.translations[preferredLanguage] ? preferredLanguage : 'en';
+
+    return {
+      props: {
+        shubhashita: {
+          sanskrit: randomShubhashita.sanskrit,
+          translation: translation
+        },
+        language: displayLanguage
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching shubhashitas:', error);
+    return {
+      props: {
+        shubhashita: null,
+        language: 'en'
+      }
+    };
+  }
 }
